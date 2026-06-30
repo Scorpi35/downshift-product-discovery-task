@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
-import { scoreItem, PRICE_RANGES } from '../utils/data';
+import Fuse from 'fuse.js';
+import { PRICE_RANGES } from '../utils/data';
 
 const ITEMS_PER_PAGE = 24;
 
@@ -12,15 +13,38 @@ export function useProductSearch(items) {
   const [sortBy, setSortBy] = useState('relevance');
   const [page, setPage] = useState(1);
 
-  const filteredAndSorted = useMemo(() => {
-    let results = items.map((item) => ({
-      item,
-      score: scoreItem(item, query),
-    }));
+  // Initialize Fuse instance
+  const fuse = useMemo(() => {
+    return new Fuse(items, {
+      keys: [
+        { name: 'title', weight: 10 },
+        { name: 'tags', weight: 8 },
+        { name: 'category', weight: 6 },
+        { name: 'brand', weight: 4 },
+        { name: 'description', weight: 2 }
+      ],
+      threshold: 0.35,      // Standard typo tolerance threshold
+      ignoreLocation: true, // Matches search terms anywhere in the field (order-independent)
+      includeScore: true,
+    });
+  }, [items]);
 
-    // Filter out non-matches when there's a query
+  const filteredAndSorted = useMemo(() => {
+    let results = [];
+
     if (query.trim()) {
-      results = results.filter((r) => r.score > 0);
+      // Use Fuse.js search
+      const searchResults = fuse.search(query);
+      results = searchResults.map((r) => ({
+        item: r.item,
+        score: 1 - (r.score || 0), // Higher is better
+      }));
+    } else {
+      // Return all items
+      results = items.map((item) => ({
+        item,
+        score: 1,
+      }));
     }
 
     // Apply filters
@@ -47,7 +71,7 @@ export function useProductSearch(items) {
       switch (sortBy) {
         case 'relevance':
           if (query.trim()) return b.score - a.score;
-          // If no query, sort by a reasonable default: rating * reviews
+          // default catalog sorting based on rating and reviews count
           return (
             (b.item.rating || 0) * Math.log(b.item.reviews + 1) -
             (a.item.rating || 0) * Math.log(a.item.reviews + 1)
@@ -69,7 +93,7 @@ export function useProductSearch(items) {
     });
 
     return results.map((r) => r.item);
-  }, [items, query, selectedCategory, selectedBrand, selectedPriceRange, inStockOnly, sortBy]);
+  }, [items, query, fuse, selectedCategory, selectedBrand, selectedPriceRange, inStockOnly, sortBy]);
 
   const paginatedItems = useMemo(() => {
     return filteredAndSorted.slice(0, page * ITEMS_PER_PAGE);
