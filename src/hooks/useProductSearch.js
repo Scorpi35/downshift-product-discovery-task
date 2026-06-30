@@ -69,13 +69,20 @@ export function useProductSearch(items) {
     // Sort
     results.sort((a, b) => {
       switch (sortBy) {
-        case 'relevance':
+        case 'relevance': {
           if (query.trim()) return b.score - a.score;
-          // default catalog sorting based on rating and reviews count
-          return (
-            (b.item.rating || 0) * Math.log(b.item.reviews + 1) -
-            (a.item.rating || 0) * Math.log(a.item.reviews + 1)
-          );
+          // Default catalog sorting: reviewed items first, ranked by weighted score
+          const aReviews = a.item.reviews || 0;
+          const bReviews = b.item.reviews || 0;
+          // Push no-review items to the very end
+          if (aReviews === 0 && bReviews > 0) return 1;
+          if (bReviews === 0 && aReviews > 0) return -1;
+          if (aReviews === 0 && bReviews === 0) return 0;
+          // Bayesian-style score: rating weighted by confidence from review count
+          const aScore = (a.item.rating || 0) * (1 - 1 / (1 + aReviews));
+          const bScore = (b.item.rating || 0) * (1 - 1 / (1 + bReviews));
+          return bScore - aScore;
+        }
         case 'price-asc':
           return (a.item.price ?? Infinity) - (b.item.price ?? Infinity);
         case 'price-desc':
