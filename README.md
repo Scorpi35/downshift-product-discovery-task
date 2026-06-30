@@ -1,77 +1,73 @@
-# Haven — Curated Product Discovery
+# Product Discovery Page
 
-Haven is a premium product discovery page designed for browsing and searching through a catalog of over 4,000 artisan home goods. 
+## Overview
 
-This project consists of a **Vite + React frontend** and a **Node.js + Express backend proxy** that fetches live data from the catalog endpoint to resolve CORS restrictions seamlessly.
+A product discovery page for browsing and searching a catalog of approximately 4,000 home goods products. The focus was on building a thoughtful search and filtering experience rather than a complete e-commerce application.
 
----
+## Tech Stack
 
-## 🚀 How to Run Locally
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, Vite 8 |
+| Search | Fuse.js 7 |
+| Backend Proxy | Express 5, Node.js 20 |
+| Linting | oxlint |
+| Runtime | Node.js v20.20.0 |
 
-### 1. Installation
-In the project directory, run:
+## What I Built
+
+- **Fuzzy search** powered by Fuse.js across title, tags, category, brand, and description fields with weighted relevance scoring
+- **Filters** for category (pill toggles), brand (dropdown), price range (four predefined buckets), and in-stock status
+- **Sorting** by relevance, price (ascending/descending), rating, and newest
+- **Infinite scroll** via IntersectionObserver with a fallback "Load more" button, loading 24 items per page
+- **Product cards** showing image, brand, title, truncated description, star rating with review count, price, category badge, out-of-stock badge, and up to three tags
+- **Data normalization** layer that cleans inconsistent titles (ALL CAPS, extra whitespace), parses string/null prices, and fills missing defaults on load
+- **Loading state** with a spinner, **error state** with retry, and **empty state** with a prompt to clear filters
+- **Keyboard shortcut**: `/` to focus search, `Escape` to blur
+- **Responsive layout** with CSS grid that adapts column count across breakpoints
+- **Skeleton shimmer** placeholders while product images load
+- **Staggered fade-in** animations on card entrance and hover lift/zoom effects
+
+## Key Decisions & Why
+
+**Fuse.js with weighted fields.** Title has the highest weight (10), followed by tags (8), category (6), brand (4), and description (2). This means a query matching a product's name ranks higher than one matching only its description, which reflects how users typically search for products.
+
+**`ignoreLocation: true` and threshold 0.35.** `ignoreLocation` ensures matches anywhere in a field count equally, so "oak bin" works regardless of where those words appear. The 0.35 threshold provides reasonable typo tolerance without returning too many irrelevant results.
+
+**Bayesian-style default sort.** When there is no active search query, the relevance sort uses a confidence-weighted score: `rating * (1 - 1/(1 + reviews))`. This prevents a single 5-star review from outranking a product with 4.8 stars across hundreds of reviews. Items with zero reviews are pushed to the bottom.
+
+**Client-side search.** The full catalog is approximately 1.4 MB. Fetching it once and searching in-memory with Fuse.js avoids round-trip latency on every keystroke and keeps the interaction feeling instant. This is a reasonable tradeoff at 4,000 items.
+
+**Express proxy server.** The catalog endpoint does not include CORS headers. Rather than relying solely on Vite's dev proxy (which would not work in production), a lightweight Express server fetches the data server-side. Vite's proxy routes `/api/*` to this server during development.
+
+**Data normalization on load.** The raw data has inconsistent casing, string-formatted prices with commas, and null values for ratings, images, and descriptions. Normalizing once on fetch means components never need to handle these edge cases individually.
+
+**Infinite scroll over traditional pagination.** For a discovery-oriented browsing experience, continuous scrolling feels more natural. The IntersectionObserver fires 200px before the sentinel enters the viewport, so new items appear before the user reaches the bottom.
+
+## Tradeoffs
+
+Given the time constraint, several improvements were intentionally left out:
+
+- **Debounced search input.** Fuse.js is fast enough on 4,000 items that debouncing was not necessary, but it would matter at larger catalog sizes.
+- **Search result highlighting.** Matched terms are not visually highlighted within product cards.
+- **URL-synced filters.** Filter and search state is not persisted in the URL, so refreshing or sharing a link loses the current view.
+- **Backend search.** At 50,000+ items, client-side search would degrade; a server-side search index (e.g., Meilisearch, Elasticsearch) would be needed.
+- **Search suggestions and synonyms.** There is no typeahead or synonym mapping (e.g., "chair" to "furniture").
+- **Analytics.** No tracking of search queries, filter usage, or zero-result rates.
+
+## Running Locally
+
+Requires Node.js v20+.
+
 ```bash
 npm install
-```
-
-### 2. Run the Development Environment
-We use `concurrently` to boot up both the Vite dev server and the Express proxy server in a single command:
-```bash
 npm run dev
 ```
 
-*   **Frontend Client:** `http://localhost:5173`
-*   **Backend Proxy Server:** `http://localhost:3001`
+This starts both the Vite dev server (http://localhost:5173) and the Express proxy server (http://localhost:3001) concurrently.
 
----
+To build for production:
 
-## 🎨 Visual Preview
-
-Here is how the curated catalog discovery interface feels in action:
-
-![Haven Catalog Interface](/Users/scorpi/.gemini/antigravity-ide/brain/aa806428-b2ec-4945-bcd0-06f8942e58e1/initial_state_1782817405697.png)
-*Initial loaded state showing the search bar, category selection, and grid.*
-
-![Search Results for 'Terracotta'](/Users/scorpi/.gemini/antigravity-ide/brain/aa806428-b2ec-4945-bcd0-06f8942e58e1/terracotta_results_1782817426093.png)
-*Curated filtering and fuzzy matching in action for "terracotta" items.*
-
----
-
-## 🧠 Architectural & Design Decisions
-
-### 1. The Search Logic (Our Core Focus)
-Instead of a naive `.includes()` substring search on a single field, we integrated **Fuse.js**, a powerful fuzzy search library, to enable highly tolerant and robust product discovery queries:
-*   **Weighted Relevance**: Match weights are calculated using strict field importance priority: `title` (weight 10) > `tags` (weight 8) > `category` (weight 6) > `brand` (weight 4) > `description` (weight 2).
-*   **Fuzzy Typo Tolerance**: Configured with a `threshold` of `0.35` to provide a highly forgiving search experience (capturing spelling errors, minor substitutions, and layout quirks gracefully).
-*   **Order-Independent Search**: Set `ignoreLocation` to `true` to ensure query terms match anywhere in the string regardless of word order (e.g., "oak bins" and "bins oak" resolve successfully).
-*   **Normalization pipeline**: Before feeding to Fuse.js or rendering, the raw catalog data is normalized:
-    *   Extra spaces and erratic casing (e.g., `  VINTAGE OAK BIN ` and `brushed oak task lamp`) are formatted to clean Title Case.
-    *   Price values are sanitized (stripping formatting commas, handling `null` prices with a fallback "Price on request").
-    *   Default ratings, descriptions, and empty values are handled gracefully.
-
-### 2. Architecture & Bypassing CORS
-*   **Node.js Express Proxy**: To bypass CORS blocks, the backend proxy server sits at `http://localhost:3001` and fetches the remote JSON file server-side.
-*   **Vite Reverse Proxy**: The frontend uses Vite's built-in `server.proxy` configuration to route `/api/*` requests to the Node.js backend. This keeps the client code clean, preventing hardcoded server ports or absolute URLs in client fetches.
-
-### 3. Aesthetics & User Experience
-*   **Warm Neutrals Palette**: Hues of beige (`#faf8f5`), brass/gold accents (`#b8860b`), and soft borders make the discovery feel like browsing a premium, boutique home goods magazine.
-*   **Micro-interactions**: Hover zoom transitions on card images, lift effects, and staggered fade-in animations on load.
-*   **Keyboard Shortcut**: Pressing `/` instantly focuses the search bar; pressing `Escape` unfocuses it.
-*   **Dynamic Skeleton States**: Custom shimmer animations while loading card images prevent jarring layout shifts.
-
----
-
-## 🔮 What to Do Next
-
-1.  **Add Auto-Suggest & Synonyms**: Match searches like "chair" to "furniture" and "stool," and "blanket" to "textiles" through a synonym map.
-2.  **Add Server-side Search & Pagination**: Right now, all 4k products are fetched and sorted in-memory. As the catalog grows, this should be moved to a search index like Elasticsearch or Meilisearch on the backend.
-3.  **Search Analytics**: Log what users search for to understand inventory demand and search failures.
-
----
-
-## ⚠️ One Major Tradeoff to Watch
-
-*   **In-Memory vs. Server-Side Processing**:
-    *   *Currently*: We fetch the entire 4,000-product JSON array to the client once on load. Search, filter, and sort are instant and run on the client.
-    *   *The Tradeoff*: While 4k items is small enough to load fast (around 1.4 MB raw), if the catalog grows to 50,000+ items, the page loading times will degrade severely.
-    *   *Solution*: When scaling, we would move sorting, filtering, and searching to the Node.js proxy server (leveraging database indexes) and paginate API responses.
+```bash
+npm run build
+```
