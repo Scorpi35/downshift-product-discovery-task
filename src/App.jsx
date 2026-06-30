@@ -4,9 +4,11 @@ import { useProductSearch } from './hooks/useProductSearch';
 import SearchBar from './components/SearchBar';
 import FilterBar from './components/FilterBar';
 import ProductCard from './components/ProductCard';
+import SkeletonCard from './components/SkeletonCard';
 import './App.css';
 
 const DATA_URL = '/api/products';
+const INITIAL_LOAD_DELAY = 1200;
 
 function App() {
   const [items, setItems] = useState([]);
@@ -14,14 +16,17 @@ function App() {
   const [error, setError] = useState(null);
   const sentinelRef = useRef(null);
 
-  // Load data on mount
+  // Load data on mount with intentional delay to showcase loading state
   useEffect(() => {
     async function loadData() {
       try {
         const res = await fetch(DATA_URL);
         if (!res.ok) throw new Error('Failed to fetch products');
         const data = await res.json();
-        setItems(normalizeItems(data));
+        const normalized = normalizeItems(data);
+        // Artificial delay so the loading UI is always visible
+        await new Promise((resolve) => setTimeout(resolve, INITIAL_LOAD_DELAY));
+        setItems(normalized);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -39,11 +44,11 @@ function App() {
   // Infinite scroll via IntersectionObserver
   const observerCallback = useCallback(
     (entries) => {
-      if (entries[0].isIntersecting && search.hasMore) {
+      if (entries[0].isIntersecting && search.hasMore && !search.loadingMore) {
         search.loadMore();
       }
     },
-    [search.hasMore, search.loadMore]
+    [search.hasMore, search.loadMore, search.loadingMore]
   );
 
   useEffect(() => {
@@ -140,7 +145,16 @@ function App() {
               {/* Infinite scroll sentinel */}
               <div ref={sentinelRef} className="scroll-sentinel" />
 
-              {search.hasMore && (
+              {/* Skeleton cards while loading more */}
+              {search.loadingMore && (
+                <div className="products-grid skeleton-grid">
+                  {Array.from({ length: 6 }, (_, i) => (
+                    <SkeletonCard key={`skeleton-${i}`} />
+                  ))}
+                </div>
+              )}
+
+              {search.hasMore && !search.loadingMore && (
                 <div className="load-more-wrapper">
                   <button className="load-more-btn" onClick={search.loadMore}>
                     Load more products

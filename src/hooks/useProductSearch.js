@@ -1,8 +1,9 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import Fuse from 'fuse.js';
 import { PRICE_RANGES } from '../utils/data';
 
-const ITEMS_PER_PAGE = 24;
+const ITEMS_PER_PAGE = 50;
+const LOAD_MORE_DELAY = 800;
 
 export function useProductSearch(items) {
   const [query, setQuery] = useState('');
@@ -12,6 +13,8 @@ export function useProductSearch(items) {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');
   const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadingRef = useRef(false);
 
   // Initialize Fuse instance
   const fuse = useMemo(() => {
@@ -109,7 +112,14 @@ export function useProductSearch(items) {
   const hasMore = paginatedItems.length < filteredAndSorted.length;
 
   const loadMore = useCallback(() => {
-    setPage((p) => p + 1);
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    setLoadingMore(true);
+    setTimeout(() => {
+      setPage((p) => p + 1);
+      setLoadingMore(false);
+      loadingRef.current = false;
+    }, LOAD_MORE_DELAY);
   }, []);
 
   const activeFilterCount = useMemo(() => {
@@ -174,6 +184,7 @@ export function useProductSearch(items) {
     sortBy,
     setSortBy: updateSortBy,
     results: paginatedItems,
+    loadingMore,
     totalResults: filteredAndSorted.length,
     hasMore,
     loadMore,

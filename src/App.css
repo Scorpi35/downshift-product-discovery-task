@@ -79,6 +79,10 @@
   height: 1px;
 }
 
+.skeleton-grid {
+  margin-top: 20px;
+}
+
 /* ─── Load More ─── */
 .load-more-wrapper {
   display: flex;
