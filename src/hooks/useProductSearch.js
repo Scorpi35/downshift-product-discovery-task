@@ -1,160 +1,85 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { scoreItem, PRICE_RANGES } from '../utils/data';
 
-const LIMIT = 100;
+const ITEMS_PER_PAGE = 24;
 
-export function useProductSearch() {
-  const [fetchedItems, setFetchedItems] = useState([]);
+export function useProductSearch(items) {
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [selectedPriceRange, setSelectedPriceRange] = useState(null);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');
-
-  // Pagination state for default scroll
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  // Fetch helper
-  const fetchPage = useCallback(async (pageNum) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/products?page=${pageNum}&limit=${LIMIT}`);
-      if (!res.ok) throw new Error('Failed to fetch products');
-      const data = await res.json();
-      
-      setFetchedItems((prev) => {
-        // Deduplicate items
-        const existingIds = new Set(prev.map((item) => item.id));
-        const newItems = data.items.filter((item) => !existingIds.has(item.id));
-        return [...prev, ...newItems];
-      });
-      setHasMore(data.hasMore);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Fetch initial page on mount
-  useEffect(() => {
-    fetchPage(1);
-  }, [fetchPage]);
-
-  // Load more function for scroll sentinel
-  const loadMore = useCallback(() => {
-    if (loading || !hasMore || query.trim()) return;
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchPage(nextPage);
-  }, [loading, hasMore, page, query, fetchPage]);
-
-  // Server-side search if local search returns no results
-  const [isSearchingServer, setIsSearchingServer] = useState(false);
-
-  // 1. Scan fetched data first
-  const localSearchResults = useMemo(() => {
-    if (!query.trim()) return null;
-    return fetchedItems
-      .map((item) => ({ item, score: scoreItem(item, query) }))
-      .filter((r) => r.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map((r) => r.item);
-  }, [fetchedItems, query]);
-
-  // Trigger server-side fetch if no matches in fetched data
-  useEffect(() => {
-    if (!query.trim()) return;
-
-    // Check if we found anything locally
-    const hasLocalMatches = localSearchResults && localSearchResults.length > 0;
-
-    // If not available locally, fetch from backend url
-    if (!hasLocalMatches && !isSearchingServer) {
-      async function searchServer() {
-        setIsSearchingServer(true);
-        setLoading(true);
-        try {
-          const res = await fetch(`/api/products?q=${encodeURIComponent(query)}`);
-          if (!res.ok) throw new Error('Failed to fetch search results');
-          const data = await res.json();
-
-          setFetchedItems((prev) => {
-            const existingIds = new Set(prev.map((item) => item.id));
-            const newItems = data.items.filter((item) => !existingIds.has(item.id));
-            return [...prev, ...newItems];
-          });
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
-          setIsSearchingServer(false);
-        }
-      }
-      searchServer();
-    }
-  }, [query, localSearchResults, isSearchingServer]);
-
-  // Filter and sort the current results
   const filteredAndSorted = useMemo(() => {
-    // If query is active, use search results; otherwise use all fetched items
-    let resultsList = query.trim() ? (localSearchResults || []) : fetchedItems;
+    let results = items.map((item) => ({
+      item,
+      score: scoreItem(item, query),
+    }));
 
-    // Apply filters (Category, Brand, Price Range, Stock)
+    // Filter out non-matches when there's a query
+    if (query.trim()) {
+      results = results.filter((r) => r.score > 0);
+    }
+
+    // Apply filters
     if (selectedCategory) {
-      resultsList = resultsList.filter((item) => item.category === selectedCategory);
+      results = results.filter((r) => r.item.category === selectedCategory);
     }
     if (selectedBrand) {
-      resultsList = resultsList.filter((item) => item.brand === selectedBrand);
+      results = results.filter((r) => r.item.brand === selectedBrand);
     }
     if (selectedPriceRange !== null) {
       const range = PRICE_RANGES[selectedPriceRange];
-      resultsList = resultsList.filter((item) => {
-        const price = item.price;
+      results = results.filter((r) => {
+        const price = r.item.price;
         if (price == null) return false;
         return price >= range.min && price < range.max;
       });
     }
     if (inStockOnly) {
-      resultsList = resultsList.filter((item) => item.inStock);
+      results = results.filter((r) => r.item.inStock);
     }
 
     // Sort
-    const sorted = [...resultsList];
-    sorted.sort((a, b) => {
+    results.sort((a, b) => {
       switch (sortBy) {
         case 'relevance':
-          if (query.trim()) {
-            return scoreItem(b, query) - scoreItem(a, query);
-          }
-          // Default sort: rating * log(reviews + 1)
+          if (query.trim()) return b.score - a.score;
+          // If no query, sort by a reasonable default: rating * reviews
           return (
-            (b.rating || 0) * Math.log(b.reviews + 1) -
-            (a.rating || 0) * Math.log(a.reviews + 1)
+            (b.item.rating || 0) * Math.log(b.item.reviews + 1) -
+            (a.item.rating || 0) * Math.log(a.item.reviews + 1)
           );
         case 'price-asc':
-          return (a.price ?? Infinity) - (b.price ?? Infinity);
+          return (a.item.price ?? Infinity) - (b.item.price ?? Infinity);
         case 'price-desc':
-          return (b.price ?? -1) - (a.price ?? -1);
+          return (b.item.price ?? -1) - (a.item.price ?? -1);
         case 'rating':
-          return (b.rating ?? 0) - (a.rating ?? 0);
+          return (b.item.rating ?? 0) - (a.item.rating ?? 0);
         case 'newest':
           return (
-            new Date(b.releasedAt).getTime() -
-            new Date(a.releasedAt).getTime()
+            new Date(b.item.releasedAt).getTime() -
+            new Date(a.item.releasedAt).getTime()
           );
         default:
           return 0;
       }
     });
 
-    return sorted;
-  }, [fetchedItems, query, localSearchResults, selectedCategory, selectedBrand, selectedPriceRange, inStockOnly, sortBy]);
+    return results.map((r) => r.item);
+  }, [items, query, selectedCategory, selectedBrand, selectedPriceRange, inStockOnly, sortBy]);
+
+  const paginatedItems = useMemo(() => {
+    return filteredAndSorted.slice(0, page * ITEMS_PER_PAGE);
+  }, [filteredAndSorted, page]);
+
+  const hasMore = paginatedItems.length < filteredAndSorted.length;
+
+  const loadMore = useCallback(() => {
+    setPage((p) => p + 1);
+  }, []);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -170,30 +95,58 @@ export function useProductSearch() {
     setSelectedBrand(null);
     setSelectedPriceRange(null);
     setInStockOnly(false);
+    setPage(1);
+  }, []);
+
+  // Reset page when any filter changes
+  const updateQuery = useCallback((q) => {
+    setQuery(q);
+    setPage(1);
+  }, []);
+
+  const updateCategory = useCallback((cat) => {
+    setSelectedCategory((prev) => (prev === cat ? null : cat));
+    setPage(1);
+  }, []);
+
+  const updateBrand = useCallback((brand) => {
+    setSelectedBrand((prev) => (prev === brand ? null : brand));
+    setPage(1);
+  }, []);
+
+  const updatePriceRange = useCallback((idx) => {
+    setSelectedPriceRange((prev) => (prev === idx ? null : idx));
+    setPage(1);
+  }, []);
+
+  const toggleInStock = useCallback(() => {
+    setInStockOnly((prev) => !prev);
+    setPage(1);
+  }, []);
+
+  const updateSortBy = useCallback((sort) => {
+    setSortBy(sort);
+    setPage(1);
   }, []);
 
   return {
     query,
-    setQuery,
+    setQuery: updateQuery,
     selectedCategory,
-    setSelectedCategory,
+    setSelectedCategory: updateCategory,
     selectedBrand,
-    setSelectedBrand,
+    setSelectedBrand: updateBrand,
     selectedPriceRange,
-    setSelectedPriceRange,
+    setSelectedPriceRange: updatePriceRange,
     inStockOnly,
-    toggleInStock: () => setInStockOnly((prev) => !prev),
+    toggleInStock,
     sortBy,
-    setSortBy,
-    results: filteredAndSorted,
+    setSortBy: updateSortBy,
+    results: paginatedItems,
     totalResults: filteredAndSorted.length,
-    totalItems: fetchedItems.length,
-    hasMore: !query.trim() && hasMore, // Only scroll load when not searching
+    hasMore,
     loadMore,
     activeFilterCount,
     clearFilters,
-    loading,
-    error,
-    fetchedItems,
   };
 }

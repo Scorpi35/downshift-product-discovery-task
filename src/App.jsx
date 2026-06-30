@@ -9,11 +9,32 @@ import './App.css';
 const DATA_URL = '/api/products';
 
 function App() {
-  const search = useProductSearch();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const sentinelRef = useRef(null);
 
-  const categories = extractCategories(search.fetchedItems);
-  const brands = extractBrands(search.fetchedItems);
+  // Load data on mount
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const res = await fetch(DATA_URL);
+        if (!res.ok) throw new Error('Failed to fetch products');
+        const data = await res.json();
+        setItems(normalizeItems(data));
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const categories = extractCategories(items);
+  const brands = extractBrands(items);
+
+  const search = useProductSearch(items);
 
   // Infinite scroll via IntersectionObserver
   const observerCallback = useCallback(
@@ -37,8 +58,8 @@ function App() {
     return () => observer.disconnect();
   }, [observerCallback]);
 
-  // Initial loading state
-  if (search.loading && search.fetchedItems.length === 0) {
+  // Loading state
+  if (loading) {
     return (
       <div className="app-loading">
         <div className="loading-spinner" />
@@ -48,11 +69,11 @@ function App() {
   }
 
   // Error state
-  if (search.error && search.fetchedItems.length === 0) {
+  if (error) {
     return (
       <div className="app-error">
         <h2>Something went wrong</h2>
-        <p>{search.error}</p>
+        <p>{error}</p>
         <button onClick={() => window.location.reload()}>Try again</button>
       </div>
     );
@@ -83,7 +104,7 @@ function App() {
               query={search.query}
               setQuery={search.setQuery}
               totalResults={search.totalResults}
-              totalItems={search.totalItems}
+              totalItems={items.length}
             />
           </section>
 
