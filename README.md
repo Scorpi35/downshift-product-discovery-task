@@ -19,16 +19,18 @@ A product discovery page for browsing and searching a catalog of approximately 4
 - **Fuzzy search** powered by Fuse.js across title, tags, category, brand, and description fields with weighted relevance scoring
 - **Filters** for category (pill toggles), brand (dropdown), price range (four predefined buckets), and in-stock status
 - **Sorting** by relevance, price (ascending/descending), rating, and newest
-- **Infinite scroll** via IntersectionObserver with a fallback "Load more" button, loading 24 items per page
+- **Infinite scroll** via IntersectionObserver, loading 50 items per page automatically as the user scrolls
 - **Product cards** showing image, brand, title, truncated description, star rating with review count, price, category badge, out-of-stock badge, and up to three tags
 - **Data normalization** layer that cleans inconsistent titles (ALL CAPS, extra whitespace), parses string/null prices, and fills missing defaults on load
-- **Loading state** with a spinner, **error state** with retry, and **empty state** with a prompt to clear filters
+- **Loading states**: initial full-screen loading spinner (1.2s delay), full-grid skeleton cards (12 cards) with shimmer on search/filter changes (600ms delay), and inline skeleton cards (6 cards) on infinite scroll (800ms delay)
 - **Keyboard shortcut**: `/` to focus search, `Escape` to blur
 - **Responsive layout** with CSS grid that adapts column count across breakpoints
 - **Skeleton shimmer** placeholders while product images load
 - **Staggered fade-in** animations on card entrance and hover lift/zoom effects
 
 ## Key Decisions & Why
+
+**Simulated loading states & skeleton loaders.** To showcase the intended production experience (where queries would be processed asynchronously on a server), artificial delays are introduced. A 1.2s delay occurs on initial catalog load, a 600ms delay occurs on any search input or filter changes to display a full grid of 12 skeleton loaders, and an 800ms delay occurs on scrolling to display 6 loader cards. This provides visual feedback and prevents page layout shifts.
 
 **Fuse.js with weighted fields.** Title has the highest weight (10), followed by tags (8), category (6), brand (4), and description (2). This means a query matching a product's name ranks higher than one matching only its description, which reflects how users typically search for products.
 
@@ -46,14 +48,26 @@ A product discovery page for browsing and searching a catalog of approximately 4
 
 ## Tradeoffs
 
-Given the time constraint, several improvements were intentionally left out:
+Given the one-hour time constraint, I focused on delivering a polished core search experience rather than implementing every possible enhancement.
 
-- **Debounced search input.** Fuse.js is fast enough on 4,000 items that debouncing was not necessary, but it would matter at larger catalog sizes.
-- **Search result highlighting.** Matched terms are not visually highlighted within product cards.
-- **URL-synced filters.** Filter and search state is not persisted in the URL, so refreshing or sharing a link loses the current view.
-- **Backend search.** At 50,000+ items, client-side search would degrade; a server-side search index (e.g., Meilisearch, Elasticsearch) would be needed.
-- **Search suggestions and synonyms.** There is no typeahead or synonym mapping (e.g., "chair" to "furniture").
-- **Analytics.** No tracking of search queries, filter usage, or zero-result rates.
+Some intentional tradeoffs include:
+
+- **No debounced search.** With a catalog of ~4,000 products, client-side search remains responsive enough that debouncing wasn't necessary.
+- **No search result highlighting.** The focus was on returning relevant results before improving visual feedback.
+- **No URL-synced state.** Search queries and filters are not persisted in the URL, so they can't be shared or restored after a refresh.
+- **Client-side search only.** This keeps the implementation simple and fast for the current dataset. A dedicated search backend would be more appropriate for much larger catalogs.
+- **No autocomplete or synonym support.** Searches rely on the entered query without suggestions or synonym expansion.
+- **No analytics.** Search queries, filter usage, and zero-result searches are not tracked, limiting opportunities for data-driven improvements.
+
+## Future Enhancements
+
+If I had more time, I would focus on:
+
+- Autocomplete and search suggestions.
+- Synonym support and improved typo tolerance.
+- More advanced relevance ranking using user behavior signals.
+- Faceted filtering (price ranges, ratings, brands, etc.).
+- Migrating search to a dedicated search engine for larger datasets.
 
 ## Running Locally
 

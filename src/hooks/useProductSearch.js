@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import Fuse from 'fuse.js';
 import { PRICE_RANGES } from '../utils/data';
 
@@ -15,6 +15,26 @@ export function useProductSearch(items) {
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const loadingRef = useRef(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef(null);
+
+  const triggerSearchLoading = useCallback(() => {
+    setIsSearching(true);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setIsSearching(false);
+    }, 600); // 600ms simulated search/filter delay
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Initialize Fuse instance
   const fuse = useMemo(() => {
@@ -137,38 +157,45 @@ export function useProductSearch(items) {
     setSelectedPriceRange(null);
     setInStockOnly(false);
     setPage(1);
-  }, []);
+    triggerSearchLoading();
+  }, [triggerSearchLoading]);
 
   // Reset page when any filter changes
   const updateQuery = useCallback((q) => {
     setQuery(q);
     setPage(1);
-  }, []);
+    triggerSearchLoading();
+  }, [triggerSearchLoading]);
 
   const updateCategory = useCallback((cat) => {
     setSelectedCategory((prev) => (prev === cat ? null : cat));
     setPage(1);
-  }, []);
+    triggerSearchLoading();
+  }, [triggerSearchLoading]);
 
   const updateBrand = useCallback((brand) => {
     setSelectedBrand((prev) => (prev === brand ? null : brand));
     setPage(1);
-  }, []);
+    triggerSearchLoading();
+  }, [triggerSearchLoading]);
 
   const updatePriceRange = useCallback((idx) => {
     setSelectedPriceRange((prev) => (prev === idx ? null : idx));
     setPage(1);
-  }, []);
+    triggerSearchLoading();
+  }, [triggerSearchLoading]);
 
   const toggleInStock = useCallback(() => {
     setInStockOnly((prev) => !prev);
     setPage(1);
-  }, []);
+    triggerSearchLoading();
+  }, [triggerSearchLoading]);
 
   const updateSortBy = useCallback((sort) => {
     setSortBy(sort);
     setPage(1);
-  }, []);
+    triggerSearchLoading();
+  }, [triggerSearchLoading]);
 
   return {
     query,
@@ -185,6 +212,7 @@ export function useProductSearch(items) {
     setSortBy: updateSortBy,
     results: paginatedItems,
     loadingMore,
+    isSearching,
     totalResults: filteredAndSorted.length,
     hasMore,
     loadMore,

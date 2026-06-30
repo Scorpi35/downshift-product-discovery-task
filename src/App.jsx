@@ -14,7 +14,7 @@ function App() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const sentinelRef = useRef(null);
+  const observerRef = useRef(null);
 
   // Load data on mount with intentional delay to showcase loading state
   useEffect(() => {
@@ -41,27 +41,35 @@ function App() {
 
   const search = useProductSearch(items);
 
-  // Infinite scroll via IntersectionObserver
-  const observerCallback = useCallback(
-    (entries) => {
-      if (entries[0].isIntersecting && search.hasMore && !search.loadingMore) {
-        search.loadMore();
-      }
-    },
-    [search.hasMore, search.loadMore, search.loadingMore]
-  );
-
+  // Keep search state in a ref to avoid IntersectionObserver callback recreate/thrashing
+  const searchRef = useRef(search);
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
+    searchRef.current = search;
+  }, [search]);
 
-    const observer = new IntersectionObserver(observerCallback, {
-      rootMargin: '200px',
-    });
-    observer.observe(sentinel);
+  // Infinite scroll via IntersectionObserver callback ref
+  const sentinelRef = useCallback((node) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
 
-    return () => observer.disconnect();
-  }, [observerCallback]);
+    if (node) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const { hasMore, loadingMore, loadMore } = searchRef.current;
+          if (entries[0].isIntersecting && hasMore && !loadingMore) {
+            loadMore();
+          }
+        },
+        {
+          rootMargin: '200px',
+        }
+      );
+      observer.observe(node);
+      observerRef.current = observer;
+    }
+  }, []);
 
   // Loading state
   if (loading) {
@@ -134,7 +142,15 @@ function App() {
           </section>
 
           {/* Results grid */}
-          {search.results.length > 0 ? (
+          {search.isSearching ? (
+            <section className="products-section" aria-label="Searching products">
+              <div className="products-grid">
+                {Array.from({ length: 12 }, (_, i) => (
+                  <SkeletonCard key={`search-skeleton-${i}`} />
+                ))}
+              </div>
+            </section>
+          ) : search.results.length > 0 ? (
             <section className="products-section" aria-label="Product results">
               <div className="products-grid">
                 {search.results.map((item, index) => (
@@ -143,7 +159,7 @@ function App() {
               </div>
 
               {/* Infinite scroll sentinel */}
-              <div ref={sentinelRef} className="scroll-sentinel" />
+              {search.hasMore && <div ref={sentinelRef} className="scroll-sentinel" />}
 
               {/* Skeleton cards while loading more */}
               {search.loadingMore && (
@@ -151,14 +167,6 @@ function App() {
                   {Array.from({ length: 6 }, (_, i) => (
                     <SkeletonCard key={`skeleton-${i}`} />
                   ))}
-                </div>
-              )}
-
-              {search.hasMore && !search.loadingMore && (
-                <div className="load-more-wrapper">
-                  <button className="load-more-btn" onClick={search.loadMore}>
-                    Load more products
-                  </button>
                 </div>
               )}
             </section>
