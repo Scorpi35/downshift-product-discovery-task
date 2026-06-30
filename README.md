@@ -23,12 +23,15 @@ A product discovery page for browsing and searching a catalog of approximately 4
 - **Product cards** showing image, brand, title, truncated description, star rating with review count, price, category badge, out-of-stock badge, and up to three tags
 - **Data normalization** layer that cleans inconsistent titles (ALL CAPS, extra whitespace), parses string/null prices, and fills missing defaults on load
 - **Loading states**: initial full-screen loading spinner (1.2s delay), full-grid skeleton cards (12 cards) with shimmer on search/filter changes (600ms delay), and inline skeleton cards (6 cards) on infinite scroll (800ms delay)
+- **Sticky search and filter controls** with a glassmorphism blur backdrop to remain visible and accessible at all times during page scroll
 - **Keyboard shortcut**: `/` to focus search, `Escape` to blur
 - **Responsive layout** with CSS grid that adapts column count across breakpoints
 - **Skeleton shimmer** placeholders while product images load
 - **Staggered fade-in** animations on card entrance and hover lift/zoom effects
 
 ## Key Decisions & Why
+
+**Sticky search & filters.** To ensure a comfortable user experience when browsing over 4,000 items, the search bar and filter controls remain pinned to the top of the viewport. This allows users to adjust filters or refine search terms immediately without having to scroll all the way back to the top of the page. A subtle glassmorphism backdrop blur is used so scrolled content doesn't visually clash with the sticky bar.
 
 **Simulated loading states & skeleton loaders.** To showcase the intended production experience (where queries would be processed asynchronously on a server), artificial delays are introduced. A 1.2s delay occurs on initial catalog load, a 600ms delay occurs on any search input or filter changes to display a full grid of 12 skeleton loaders, and an 800ms delay occurs on scrolling to display 6 loader cards. This provides visual feedback and prevents page layout shifts.
 

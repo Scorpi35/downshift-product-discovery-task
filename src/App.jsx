@@ -105,41 +105,45 @@ function App() {
               <p className="header-tagline">Curated home goods, handpicked for you</p>
             </div>
           </div>
+
+          {/* Sticky controls for search and filters */}
+          <div className="header-controls">
+            {/* Search */}
+            <section className="search-section" aria-label="Search products">
+              <SearchBar
+                query={search.query}
+                setQuery={search.setQuery}
+                totalResults={search.totalResults}
+                totalItems={items.length}
+              />
+            </section>
+
+            {/* Filters */}
+            <section className="filter-section" aria-label="Filter products">
+              <FilterBar
+                categories={categories}
+                brands={brands}
+                selectedCategory={search.selectedCategory}
+                setSelectedCategory={search.setSelectedCategory}
+                selectedBrand={search.selectedBrand}
+                setSelectedBrand={search.setSelectedBrand}
+                selectedPriceRange={search.selectedPriceRange}
+                setSelectedPriceRange={search.setSelectedPriceRange}
+                inStockOnly={search.inStockOnly}
+                toggleInStock={search.toggleInStock}
+                sortBy={search.sortBy}
+                setSortBy={search.setSortBy}
+                activeFilterCount={search.activeFilterCount}
+                clearFilters={search.clearFilters}
+              />
+            </section>
+          </div>
         </div>
       </header>
 
       {/* Main content */}
       <main className="app-main">
         <div className="container">
-          {/* Search */}
-          <section className="search-section" aria-label="Search products">
-            <SearchBar
-              query={search.query}
-              setQuery={search.setQuery}
-              totalResults={search.totalResults}
-              totalItems={items.length}
-            />
-          </section>
-
-          {/* Filters */}
-          <section className="filter-section" aria-label="Filter products">
-            <FilterBar
-              categories={categories}
-              brands={brands}
-              selectedCategory={search.selectedCategory}
-              setSelectedCategory={search.setSelectedCategory}
-              selectedBrand={search.selectedBrand}
-              setSelectedBrand={search.setSelectedBrand}
-              selectedPriceRange={search.selectedPriceRange}
-              setSelectedPriceRange={search.setSelectedPriceRange}
-              inStockOnly={search.inStockOnly}
-              toggleInStock={search.toggleInStock}
-              sortBy={search.sortBy}
-              setSortBy={search.setSortBy}
-              activeFilterCount={search.activeFilterCount}
-              clearFilters={search.clearFilters}
-            />
-          </section>
 
           {/* Results grid */}
           {search.isSearching ? (

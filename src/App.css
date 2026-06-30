@@ -13,20 +13,20 @@
 
 /* ─── Header ─── */
 .app-header {
-  padding: 28px 0 20px;
+  padding: 20px 0 16px;
   border-bottom: 1px solid var(--border-light);
-  background: var(--bg-primary);
   position: sticky;
   top: 0;
   z-index: 100;
   backdrop-filter: blur(12px);
-  background: rgba(248, 249, 251, 0.92);
+  background: rgba(248, 249, 251, 0.94);
 }
 
 .header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 16px;
 }
 
 .header-brand {
@@ -54,18 +54,18 @@
   letter-spacing: 0.01em;
 }
 
+.header-controls .search-section {
+  margin-bottom: 14px;
+}
+
+.header-controls .filter-section {
+  margin-bottom: 0;
+}
+
 /* ─── Main ─── */
 .app-main {
   flex: 1;
   padding: 28px 0 60px;
-}
-
-.search-section {
-  margin-bottom: 20px;
-}
-
-.filter-section {
-  margin-bottom: 28px;
 }
 
 /* ─── Grid ─── */
@@ -242,7 +242,11 @@
   }
 
   .app-header {
-    padding: 20px 0 14px;
+    padding: 16px 0 12px;
+  }
+
+  .header-content {
+    margin-bottom: 12px;
   }
 
   .header-logo {
