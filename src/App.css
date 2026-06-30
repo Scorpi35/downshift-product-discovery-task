@@ -1,0 +1,262 @@
+/* ─── Layout ─── */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ─── Header ─── */
+.app-header {
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-primary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  background: rgba(250, 248, 245, 0.92);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.header-logo {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.logo-accent {
+  color: var(--accent);
+  margin-right: 2px;
+}
+
+.header-tagline {
+  font-size: 0.82rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.01em;
+}
+
+/* ─── Main ─── */
+.app-main {
+  flex: 1;
+  padding: 28px 0 60px;
+}
+
+.search-section {
+  margin-bottom: 20px;
+}
+
+.filter-section {
+  margin-bottom: 28px;
+}
+
+/* ─── Grid ─── */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.scroll-sentinel {
+  height: 1px;
+}
+
+/* ─── Load More ─── */
+.load-more-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.load-more-btn {
+  padding: 12px 36px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.load-more-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+/* ─── Empty State ─── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  animation: fadeInUp var(--transition-slow) ease;
+}
+
+.empty-icon {
+  color: var(--text-tertiary);
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-state h2 {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  margin-bottom: 24px;
+  max-width: 360px;
+}
+
+.empty-clear-btn {
+  padding: 10px 24px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-xl);
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.88rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.empty-clear-btn:hover {
+  background: var(--accent);
+  color: var(--text-inverse);
+}
+
+/* ─── Loading ─── */
+.app-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 20px;
+  color: var(--text-tertiary);
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Error ─── */
+.app-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.app-error h2 {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  color: var(--text-primary);
+}
+
+.app-error p {
+  color: var(--text-tertiary);
+}
+
+.app-error button {
+  margin-top: 12px;
+  padding: 10px 24px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-xl);
+  background: var(--accent);
+  color: white;
+  font-size: 0.88rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.app-error button:hover {
+  opacity: 0.9;
+}
+
+/* ─── Footer ─── */
+.app-footer {
+  border-top: 1px solid var(--border-light);
+  padding: 24px 0;
+  text-align: center;
+}
+
+.app-footer p {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 640px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .app-header {
+    padding: 20px 0 14px;
+  }
+
+  .header-logo {
+    font-size: 1.3rem;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+  }
+
+  .app-main {
+    padding: 20px 0 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}

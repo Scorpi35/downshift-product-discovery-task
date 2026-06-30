@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Warm neutrals palette — feels like a curated home goods catalog */
+  --bg-primary: #faf8f5;
+  --bg-secondary: #f3efe9;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fdfcfa;
+
+  --text-primary: #1a1714;
+  --text-secondary: #5c5549;
+  --text-tertiary: #8a8279;
+  --text-inverse: #faf8f5;
+
+  --accent: #b8860b;
+  --accent-light: #d4a843;
+  --accent-bg: #fdf6e3;
+  --accent-border: #e8d5a3;
+
+  --border: #e8e2d9;
+  --border-light: #f0ebe4;
+
+  --success: #4a7c59;
+  --warning: #c4841d;
+  --danger: #b54a4a;
+
+  --shadow-sm: 0 1px 3px rgba(26, 23, 20, 0.04), 0 1px 2px rgba(26, 23, 20, 0.06);
+  --shadow-md: 0 4px 12px rgba(26, 23, 20, 0.06), 0 2px 4px rgba(26, 23, 20, 0.04);
+  --shadow-lg: 0 12px 40px rgba(26, 23, 20, 0.08), 0 4px 12px rgba(26, 23, 20, 0.04);
+  --shadow-xl: 0 20px 60px rgba(26, 23, 20, 0.1), 0 8px 20px rgba(26, 23, 20, 0.06);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ─── Scrollbar Styling ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* ─── Selection ─── */
+::selection {
+  background: var(--accent-bg);
+  color: var(--text-primary);
+}
+
+/* ─── Focus ─── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ─── Animations ─── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.fade-in {
+  animation: fadeIn var(--transition-base) ease forwards;
+}
+
+.fade-in-up {
+  animation: fadeInUp var(--transition-slow) ease forwards;
+}
+
+/* ─── Utility ─── */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

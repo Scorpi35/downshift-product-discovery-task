@@ -1,0 +1,142 @@
+.filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-row-secondary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ─── Pills ─── */
+.filter-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  padding: 7px 16px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.filter-pill:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.filter-pill.active {
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  border-color: var(--text-primary);
+}
+
+.filter-pill-icon {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ─── Select ─── */
+.filter-select {
+  padding: 7px 32px 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%238a8279' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.filter-select:hover {
+  border-color: var(--accent-border);
+}
+
+.filter-select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.1);
+}
+
+/* ─── Clear ─── */
+.filter-clear {
+  padding: 7px 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--danger);
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.filter-clear:hover {
+  background: rgba(181, 74, 74, 0.08);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 640px) {
+  .filter-pills {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .filter-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-row-secondary {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    justify-content: space-between;
+  }
+}
