@@ -40,9 +40,11 @@ Here is how the curated catalog discovery interface feels in action:
 ## 🧠 Architectural & Design Decisions
 
 ### 1. The Search Logic (Our Core Focus)
-Instead of a naive `.includes()` substring search on a single field, we built a **weighted, multi-field scoring algorithm**:
-*   **Search Fields & Weighting**: Matches are checked across `title` (highest weight/exact word matches get bonus points), `category`, `brand`, `tags`, and lastly `description`.
-*   **Semantic Matching**: Allows queries like "vintage brass kitchen" to correctly score items matching "vintage" (tag), "brass" (material/title), and "kitchen" (category).
+Instead of a naive `.includes()` substring search on a single field, we built a highly robust, forgiving, and **weighted, multi-field scoring algorithm**:
+*   **Weighted Relevance**: Search matches are calculated with strict field importance priority: `title` (weight 10) > `tags` (weight 8) > `category` (weight 6) > `brand` (weight 4) > `description` (weight 2).
+*   **Typo Tolerance**: Leverages a fast Levenshtein distance edit check (allowing 1 deletion/insertion/substitution for words of length 3-5, and up to 2 edits for words > 5 letters long).
+*   **Singular & Plural Resolution**: Incorporates a basic suffix-stripping English stemmer (normalizing "ies" to "y", stripping "es"/"s" boundaries) so "tumblers" matches "tumbler" and "boxes" matches "box" flawlessly.
+*   **Multi-Word & Order-Independent Search**: Splits queries by spaces and requires all search terms to be matched somewhere on the product (supporting out-of-order queries like "kitchen brass oak").
 *   **Normalization pipeline**: Before matching or rendering, the raw catalog data is normalized:
     *   Extra spaces and erratic casing (e.g., `  VINTAGE OAK BIN ` and `brushed oak task lamp`) are formatted to clean Title Case.
     *   Price values are sanitized (stripping formatting commas, handling `null` prices with a fallback "Price on request").

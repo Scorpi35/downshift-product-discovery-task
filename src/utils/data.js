@@ -208,19 +208,20 @@ export function scoreItem(item, query) {
   for (const term of terms) {
     let termScore = 0;
 
-    // Check match across fields, weighted by field importance
+    // Check match across fields, weighted by field importance:
+    // title (10) > tags (8) > category (6) > brand (4) > description (2)
     const titleScore = matchField(term, item.title);
     termScore += titleScore * 10;
 
-    const categoryScore = matchField(term, item.category);
-    termScore += categoryScore * 7;
-
-    const brandScore = matchField(term, item.brand);
-    termScore += brandScore * 5;
-
     const tagMatches = (item.tags || []).map((tag) => getWordMatchScore(term, tag));
     const maxTagScore = Math.max(0, ...tagMatches);
-    termScore += maxTagScore * 4;
+    termScore += maxTagScore * 8;
+
+    const categoryScore = matchField(term, item.category);
+    termScore += categoryScore * 6;
+
+    const brandScore = matchField(term, item.brand);
+    termScore += brandScore * 4;
 
     const descScore = matchField(term, item.description);
     termScore += descScore * 2;
