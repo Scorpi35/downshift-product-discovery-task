@@ -87,7 +87,7 @@ function App() {
           <div className="header-content">
             <div className="header-brand">
               <h1 className="header-logo">
-                <span className="logo-accent">◆</span> Haven
+                <span className="logo-accent">◆</span> DownShift Store
               </h1>
               <p className="header-tagline">Curated home goods, handpicked for you</p>
             </div>
@@ -172,7 +172,7 @@ function App() {
       {/* Footer */}
       <footer className="app-footer">
         <div className="container">
-          <p>&copy; {new Date().getFullYear()} Haven. Crafted with care.</p>
+          <p>&copy; {new Date().getFullYear()} DownShift Store. Crafted with care.</p>
         </div>
       </footer>
     </div>

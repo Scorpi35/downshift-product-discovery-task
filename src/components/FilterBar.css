@@ -96,7 +96,7 @@
 .filter-select:focus {
   border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.1);
+  box-shadow: 0 0 0 2px rgba(59, 95, 192, 0.1);
 }
 
 /* ─── Clear ─── */

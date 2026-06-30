@@ -1,33 +1,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Warm neutrals palette — feels like a curated home goods catalog */
-  --bg-primary: #faf8f5;
-  --bg-secondary: #f3efe9;
+  /* Cool, professional palette with slate-blue accents */
+  --bg-primary: #f8f9fb;
+  --bg-secondary: #eef0f4;
   --bg-card: #ffffff;
-  --bg-card-hover: #fdfcfa;
+  --bg-card-hover: #fcfcfd;
 
-  --text-primary: #1a1714;
-  --text-secondary: #5c5549;
-  --text-tertiary: #8a8279;
-  --text-inverse: #faf8f5;
+  --text-primary: #141821;
+  --text-secondary: #475069;
+  --text-tertiary: #7a8299;
+  --text-inverse: #f8f9fb;
 
-  --accent: #b8860b;
-  --accent-light: #d4a843;
-  --accent-bg: #fdf6e3;
-  --accent-border: #e8d5a3;
+  --accent: #3b5fc0;
+  --accent-light: #5b7fd6;
+  --accent-bg: #eef2fb;
+  --accent-border: #b3c4e8;
 
-  --border: #e8e2d9;
-  --border-light: #f0ebe4;
+  --border: #dde1e9;
+  --border-light: #eceef3;
 
   --success: #4a7c59;
   --warning: #c4841d;
   --danger: #b54a4a;
 
-  --shadow-sm: 0 1px 3px rgba(26, 23, 20, 0.04), 0 1px 2px rgba(26, 23, 20, 0.06);
-  --shadow-md: 0 4px 12px rgba(26, 23, 20, 0.06), 0 2px 4px rgba(26, 23, 20, 0.04);
-  --shadow-lg: 0 12px 40px rgba(26, 23, 20, 0.08), 0 4px 12px rgba(26, 23, 20, 0.04);
-  --shadow-xl: 0 20px 60px rgba(26, 23, 20, 0.1), 0 8px 20px rgba(26, 23, 20, 0.06);
+  --shadow-sm: 0 1px 3px rgba(20, 24, 33, 0.04), 0 1px 2px rgba(20, 24, 33, 0.06);
+  --shadow-md: 0 4px 12px rgba(20, 24, 33, 0.06), 0 2px 4px rgba(20, 24, 33, 0.04);
+  --shadow-lg: 0 12px 40px rgba(20, 24, 33, 0.08), 0 4px 12px rgba(20, 24, 33, 0.04);
+  --shadow-xl: 0 20px 60px rgba(20, 24, 33, 0.1), 0 8px 20px rgba(20, 24, 33, 0.06);
 
   --radius-sm: 6px;
   --radius-md: 10px;
