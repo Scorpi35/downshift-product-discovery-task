@@ -78,14 +78,120 @@ export function extractBrands(items) {
 }
 
 /**
- * Simple search scoring — returns a relevance score (higher = better match).
- *
- * Design decision: I'm doing a multi-field weighted search rather than
- * a simple string.includes(). Title matches are weighted highest, then
- * brand, category, tags, and description. This gives much better results
- * than a single-field search for a home goods catalog where people search
- * by material ("brass"), style ("vintage"), room ("kitchen"), or product
- * type ("lantern").
+ * Fast Levenshtein distance calculation for typo tolerance.
+ */
+function levenshteinDistance(a, b) {
+  const tmp = [];
+  for (let i = 0; i <= a.length; i++) {
+    tmp[i] = [i];
+  }
+  for (let j = 0; j <= b.length; j++) {
+    tmp[0][j] = j;
+  }
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      tmp[i][j] = Math.min(
+        tmp[i - 1][j] + 1, // deletion
+        tmp[i][j - 1] + 1, // insertion
+        tmp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1) // substitution
+      );
+    }
+  }
+  return tmp[a.length][b.length];
+}
+
+/**
+ * Basic English singular/plural normalization.
+ */
+function stemWord(word) {
+  if (word.length <= 2) return word;
+
+  // Plurals ending in ies -> y (e.g. caddies -> caddy)
+  if (word.endsWith('ies')) {
+    return word.slice(0, -3) + 'y';
+  }
+
+  // Plurals ending in es (e.g. boxes -> box, dishes -> dish, benches -> bench, crates -> crate)
+  if (word.endsWith('es')) {
+    const base = word.slice(0, -2);
+    if (
+      base.endsWith('sh') ||
+      base.endsWith('ch') ||
+      base.endsWith('x') ||
+      base.endsWith('s') ||
+      base.endsWith('z')
+    ) {
+      return base;
+    }
+    return word.slice(0, -1); // e.g. crates -> crate
+  }
+
+  // Plurals ending in s (e.g. blankets -> blanket)
+  if (word.endsWith('s') && !word.endsWith('ss')) {
+    return word.slice(0, -1);
+  }
+
+  return word;
+}
+
+/**
+ * Returns a match score between a query term and a target word (0 to 1).
+ */
+function getWordMatchScore(term, targetWord) {
+  const t = term.toLowerCase();
+  const w = targetWord.toLowerCase();
+
+  // Exact match
+  if (t === w) return 1.0;
+
+  // Stemmed exact match
+  const stemmedT = stemWord(t);
+  const stemmedW = stemWord(w);
+  if (stemmedT === stemmedW) return 0.9;
+
+  // Substring match
+  if (w.includes(t) || t.includes(w)) {
+    return 0.8;
+  }
+  if (stemmedW.includes(stemmedT) || stemmedT.includes(stemmedW)) {
+    return 0.7;
+  }
+
+  // Typo tolerance (Levenshtein distance)
+  const lenDiff = Math.abs(t.length - w.length);
+  if (lenDiff <= 2 && t.length >= 3 && w.length >= 3) {
+    const distance = levenshteinDistance(t, w);
+    const maxAllowed = t.length <= 5 ? 1 : 2;
+    if (distance <= maxAllowed) {
+      return 0.6 - distance * 0.1; // 0.5 or 0.4
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * Split a field text into alphanumeric words and find the best match score for the term.
+ */
+function matchField(term, fieldText) {
+  if (!fieldText) return 0;
+  const words = fieldText
+    .toLowerCase()
+    .split(/[^a-z0-9]/)
+    .filter(Boolean);
+  let maxScore = 0;
+  for (const word of words) {
+    const score = getWordMatchScore(term, word);
+    if (score > maxScore) {
+      maxScore = score;
+    }
+  }
+  return maxScore;
+}
+
+/**
+ * Forgiving multi-field search scoring with typo tolerance, plural/singular
+ * resolution, multiple words support, case-insensitivity, and order-independence.
  */
 export function scoreItem(item, query) {
   if (!query) return 1;
@@ -101,40 +207,26 @@ export function scoreItem(item, query) {
 
   for (const term of terms) {
     let termScore = 0;
-    const titleLower = item.title.toLowerCase();
-    const brandLower = (item.brand || '').toLowerCase();
-    const categoryLower = (item.category || '').toLowerCase();
-    const tagsLower = (item.tags || []).join(' ').toLowerCase();
-    const descLower = (item.description || '').toLowerCase();
 
-    // Exact word boundary match in title = strongest signal
-    if (new RegExp(`\\b${escapeRegex(term)}\\b`).test(titleLower)) {
-      termScore += 10;
-    } else if (titleLower.includes(term)) {
-      termScore += 6;
-    }
+    // Check match across fields, weighted by field importance
+    const titleScore = matchField(term, item.title);
+    termScore += titleScore * 10;
 
-    // Brand match
-    if (brandLower.includes(term)) {
-      termScore += 5;
-    }
+    const categoryScore = matchField(term, item.category);
+    termScore += categoryScore * 7;
 
-    // Category match — important for browsing
-    if (categoryLower.includes(term)) {
-      termScore += 7;
-    }
+    const brandScore = matchField(term, item.brand);
+    termScore += brandScore * 5;
 
-    // Tag match
-    if (tagsLower.includes(term)) {
-      termScore += 4;
-    }
+    const tagMatches = (item.tags || []).map((tag) => getWordMatchScore(term, tag));
+    const maxTagScore = Math.max(0, ...tagMatches);
+    termScore += maxTagScore * 4;
 
-    // Description match — weakest signal but still useful
-    if (descLower.includes(term)) {
-      termScore += 2;
-    }
+    const descScore = matchField(term, item.description);
+    termScore += descScore * 2;
 
-    if (termScore === 0) return 0; // All terms must match something
+    // strict AND match: every word in the query must match at least one field of the product
+    if (termScore === 0) return 0;
     totalScore += termScore;
   }
 
