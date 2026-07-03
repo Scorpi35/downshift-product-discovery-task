@@ -49,19 +49,6 @@ A product discovery page for browsing and searching a catalog of approximately 4
 
 **Infinite scroll over traditional pagination.** For a discovery-oriented browsing experience, continuous scrolling feels more natural. The IntersectionObserver fires 200px before the sentinel enters the viewport, so new items appear before the user reaches the bottom.
 
-## Tradeoffs
-
-Given the one-hour time constraint, I focused on delivering a polished core search experience rather than implementing every possible enhancement.
-
-Some intentional tradeoffs include:
-
-- **No debounced search.** With a catalog of ~4,000 products, client-side search remains responsive enough that debouncing wasn't necessary.
-- **No search result highlighting.** The focus was on returning relevant results before improving visual feedback.
-- **No URL-synced state.** Search queries and filters are not persisted in the URL, so they can't be shared or restored after a refresh.
-- **Client-side search only.** This keeps the implementation simple and fast for the current dataset. A dedicated search backend would be more appropriate for much larger catalogs.
-- **No autocomplete or synonym support.** Searches rely on the entered query without suggestions or synonym expansion.
-- **No analytics.** Search queries, filter usage, and zero-result searches are not tracked, limiting opportunities for data-driven improvements.
-
 ## Future Enhancements
 
 If I had more time, I would focus on:
@@ -71,6 +58,11 @@ If I had more time, I would focus on:
 - More advanced relevance ranking using user behavior signals.
 - Faceted filtering (price ranges, ratings, brands, etc.).
 - Migrating search to a dedicated search engine for larger datasets.
+
+## Tradeoff I'd Watch
+
+**Relevance vs. Popularity.** As user behavior signals (such as clicks, purchases, or conversions) are incorporated into the ranking algorithm, I'd be careful to balance textual relevance with product popularity. Popular products can improve engagement, but they shouldn't consistently outrank products that are a better match for the user's query. I'd keep textual relevance as the primary ranking signal while using popularity as a secondary boost.
+
 
 ## Running Locally
 
